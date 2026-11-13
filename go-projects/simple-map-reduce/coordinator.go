@@ -8,6 +8,7 @@ import (
 
 type Coordinator struct {
 	mapper      *Map
+	reducer    *Reducer
 	numWorkers  int
 	logger      *log.Logger
 }
@@ -19,8 +20,15 @@ func NewCoordinator(numWorkers int) *Coordinator {
 		Logger:     log.New(os.Stdout, "MapWorker: ", log.LstdFlags),
 	}
 
+	reducer := &Reducer{
+		NumWorkers: numWorkers,
+		wg:         &sync.WaitGroup{},
+		logger:     log.New(os.Stdout, "Reducer: ", log.LstdFlags),
+	}
+
 	return &Coordinator{
 		mapper: mapper,
+		reducer: reducer,
 		logger: log.New(os.Stdout, "Coordinator: ", log.LstdFlags),
 	}
 }
@@ -33,5 +41,7 @@ func (c *Coordinator) Start() {
 	}
 	c.mapper.SetFiles(mapperFiles)
 	c.mapper.Run()
+	c.reducer.Run()
 	c.logger.Println("MapReduce Coordinator finished.")
+
 }
